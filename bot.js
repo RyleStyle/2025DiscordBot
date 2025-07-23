@@ -1,19 +1,26 @@
-import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
+import { Client, Events, GatewayIntentBits, REST, Routes } from "discord.js";
+import fs from "fs";
+import "dotenv/config";
 
-// Register commands.
-const commands = [
-  {
-    name: 'ping',
-    description: 'Replies with Pong!',
-  },
-];
+
+// Filter for js files in Commands folder.
+const cmdFiles = fs.readdirSync("./Commands/").filter(file => file.endsWith(".js"));
+// Create an empty array to store data.
+const commands = [];
+// forEach loop
+cmdFiles.forEach(file => {
+  const command = require(`./Commands/${file}`);
+  commands.push(command.data.toJSON());
+  console.log(`Loaded command: ${command.data.name}`);
+});
+
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 try {
   console.log('Started refreshing application (/) commands.');
 
-  await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
+  await rest.put(Routes.applicationCommands(process.env.TOKEN), { body: commands });
 
   console.log('Successfully reloaded application (/) commands.');
 } catch (error) {
