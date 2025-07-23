@@ -1,32 +1,33 @@
 import fs from "fs";
+import pkg from "discord.js";
+const { SlashCommandBuilder, EmbedBuilder, InteraionResponseFlags } = pkg;
 
-{
-const { SlashCommandBuilder } = require('discord.js');
-const { EmbedBuilder } = require('discord.js');
-
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
-        .setName('help')
+        .setName("help")
         .setDescription('Provides a list of available commands.'),
     async execute(interaction) {
 
+        console.log("Help");
 
         let helpEmbed = new EmbedBuilder()
         .setColor('#0099ff')
         .setTitle("Available Commands")
-        .setAuthor("Volta Help")
+        .setAuthor({name: "Volta Help"})
         .setDescription("Here is a list of the available commands!")
         
 
-        let cmdFiles = fs.readdirSync("Coammnds");
+        let cmdFiles = fs.readdirSync("Commands");
         let commands = [];
-        cmdFiles.forEach(cmd => {
-            helpEmbed.addFields(cmd.name, cmd.description)
-        });
+        for (const file of cmdFiles) {
+            const command = await import(`../Commands/${file}`);
+            commands.push(command.default.data.toJSON());
+            helpEmbed.addFields({ name: command.default.data.name, value: command.default.data.description })
+        }
 
         interaction.reply({
-            content: helpEmbed,
-            ephemeral: true})
+            embeds: [helpEmbed],
+            flags: 64 // ephemeral
+            })
         }
     }
-}
